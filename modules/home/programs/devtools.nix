@@ -6,6 +6,7 @@
     python3
 
     # other tools
+    ansi2html
     wireshark
     nmap
     devenv

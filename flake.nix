@@ -1,4 +1,6 @@
 {
+  description = "Reusable NixOS and Home Manager modules";
+
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
 
@@ -36,7 +38,20 @@
     };
   };
 
-  outputs = inputs: {
+  outputs = inputs @ {self, nixpkgs, ...}: let
+    system = "x86_64-linux";
+    lib = nixpkgs.lib;
+    pkgs = nixpkgs.legacyPackages.${system};
+
+    commonModules = [self.nixosModules.default];
+    hostModules = [
+      self.nixosModules.minimal
+      self.nixosModules.exeteres-minimal
+      ./hosts/amsonia
+    ];
+  in {
+    lib = import ./lib;
+
     nixosModules = {
       default = {
         imports = [
@@ -75,5 +90,28 @@
       minimal = ./modules/home/minimal.nix;
       workstation = ./modules/home/workstation.nix;
     };
+
+    nixosConfigurations.amsonia = lib.nixosSystem {
+      inherit system;
+      modules = commonModules ++ hostModules;
+    };
+
+    apps.${system} = {
+      amsonia-iso = self.lib.mkIsoInstaller {
+        inherit nixpkgs pkgs;
+        hostName = "amsonia";
+        modules = commonModules;
+        installer.configuration = self.nixosConfigurations.amsonia;
+      };
+
+      amsonia-kexec = self.lib.mkKexec {
+        inherit nixpkgs pkgs;
+        hostName = "amsonia";
+        modules = commonModules;
+        installer.configuration = self.nixosConfigurations.amsonia;
+      };
+    };
+
+    checks.${system}.amsonia = self.nixosConfigurations.amsonia.config.system.build.toplevel;
   };
 }

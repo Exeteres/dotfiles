@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{config, lib, pkgs, ...}: {
   imports = [
     ./gnome
     ./other/fonts.nix
@@ -27,10 +27,11 @@
     nix-ld.enable = true;
   };
 
-  environment.systemPackages = with pkgs; [
-    firefox
-    git
-    vim
-    wget
-  ];
+  environment.systemPackages =
+    (with pkgs; [
+      git
+      vim
+      wget
+    ])
+    ++ lib.optional (!config.services.flatpak.enable) pkgs.firefox;
 }
