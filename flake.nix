@@ -1,6 +1,4 @@
 {
-  description = "Reusable NixOS and Home Manager modules";
-
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
 
@@ -30,7 +28,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-flatpak.url = "github:gmodena/nix-flatpak";
+    nix-flatpak.url = {
+      url = "github:gmodena/nix-flatpak";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     wg-feed = {
       url = "github:Exeteres/wg-feed";
@@ -43,11 +49,21 @@
     lib = nixpkgs.lib;
     pkgs = nixpkgs.legacyPackages.${system};
 
-    commonModules = [self.nixosModules.default];
+    commonModules = [
+      self.nixosModules.default
+      self.nixosModules.secure-boot
+    ];
+
     hostModules = [
       self.nixosModules.minimal
       self.nixosModules.exeteres-minimal
       ./hosts/amsonia
+    ];
+
+    bootstrapModules = [
+      self.nixosModules.minimal
+      self.nixosModules.exeteres-minimal
+      ./hosts/amsonia/sops.nix
     ];
   in {
     lib = import ./lib;
@@ -60,6 +76,7 @@
           ./modules/common
         ];
       };
+
       minimal = {
         imports = [
           inputs.home-manager.nixosModules.home-manager
@@ -67,9 +84,19 @@
         ];
         home-manager.sharedModules = [./modules/home/minimal.nix];
       };
+
       exeteres-shell = ./users/exeteres/shell.nix;
       exeteres-minimal = ./users/exeteres/minimal.nix;
       exeteres-workstation = ./users/exeteres/workstation.nix;
+
+      secure-boot = {
+        imports = [
+          inputs.sops-nix.nixosModules.sops
+          inputs.lanzaboote.nixosModules.lanzaboote
+          ./modules/common/secure-boot.nix
+        ];
+      };
+
       workstation = {
         imports = [
           inputs.sops-nix.nixosModules.sops
@@ -100,14 +127,14 @@
       amsonia-iso = self.lib.mkIsoInstaller {
         inherit nixpkgs pkgs;
         hostName = "amsonia";
-        modules = commonModules;
+        modules = commonModules ++ bootstrapModules;
         installer.configuration = self.nixosConfigurations.amsonia;
       };
 
       amsonia-kexec = self.lib.mkKexec {
         inherit nixpkgs pkgs;
         hostName = "amsonia";
-        modules = commonModules;
+        modules = commonModules ++ bootstrapModules;
         installer.configuration = self.nixosConfigurations.amsonia;
       };
     };

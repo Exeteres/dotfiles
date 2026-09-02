@@ -1,12 +1,18 @@
 {
+  imports = [
+    ./hardware.nix
+    ./sops.nix
+    ./disk.nix
+  ];
+
   boot.loader = {
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;
   };
 
-  exeteres.disk = {
+  exeteres.tpm = {
     enable = true;
-    device = "/dev/disk/by-id/replace-with-amsonia-disk";
+    user = "exeteres";
   };
 
   networking.hostName = "amsonia";

@@ -2,6 +2,7 @@
   imports = [
     ./disk.nix
     ./shell.nix
+    ./tpm.nix
     ./unfree.nix
   ];
 
