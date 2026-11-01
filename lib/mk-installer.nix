@@ -296,6 +296,8 @@ in
         "installing the target NixOS system" \
         "The target system may be only partially installed and should not be booted; rerunning will reformat it." \
         "Installing the target NixOS system"
+      # age plugins use /tmp before nixos-enter runs systemd-tmpfiles
+      install -d -m 1777 /mnt/tmp
       TMPDIR=/tmp nixos-install --no-root-passwd --system "$target_system"
       log_success "Installed the target NixOS system"
 
