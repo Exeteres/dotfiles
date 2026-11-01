@@ -1,0 +1,17 @@
+# Repository instructions
+
+- This repository configures NixOS host `rebecca` and Home Manager. Keep shared
+  configuration in `modules/`, host specifics in `hosts/rebecca/`, and user
+  profiles in `users/`.
+- Preserve existing staged and unstaged work. Do not stage or commit unless
+  asked; the installed pre-commit hook stages encrypted private modules.
+- Do not deploy, switch configurations, modify disks/bootloaders, or reboot
+  without explicit authorization.
+- Use `path:.` in Nix flake commands; Git-backed sources omit ignored private
+  modules. Validate with `nix flake check path:. --no-build` and
+  `git diff --check`; format Nix with Alejandra.
+- Private module names are `private.nix` or `*.private.nix`; plaintext is ignored.
+  Track only `private.nix.enc` / `*.private.nix.enc`, managed by SOPS through
+  `scripts/private-nix`. Never force-add plaintext or print decrypted secrets.
+- Read `scripts/README.md` before changing the encryption workflow. Keep
+  credentials in runtime SOPS secrets: imported private Nix enters the Nix store.

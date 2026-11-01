@@ -55,6 +55,16 @@ in
         log_warning "Secure Boot is disabled; using the unsigned kexec kernel"
       fi
 
+      log_warning "This will immediately reboot into the ${hostName} kexec system."
+      if ! read -r -p "Type ${hostName} to continue: " confirmation; then
+        log_warning "Aborted."
+        exit 1
+      fi
+      if [[ $confirmation != ${pkgs.lib.escapeShellArg hostName} ]]; then
+        log_warning "Aborted."
+        exit 1
+      fi
+
       log_info "Loading the ${hostName} kexec system"
       "''${sudo_command[@]}" "$(command -v kexec)" --kexec-file-syscall --load "$kernel" \
         --initrd=${configuration.config.system.build.kexecTree}/initrd.gz \

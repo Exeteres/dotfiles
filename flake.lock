@@ -35,6 +35,27 @@
         "type": "github"
       }
     },
+    "exetrouter": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793534897,
+        "narHash": "sha256-Idqug7VW+v0xDtjO1CHOzkIjyU2dxK1R0QY3emdUmGw=",
+        "owner": "mocki-toki",
+        "repo": "exetrouter",
+        "rev": "1cf0b9a47cfe1bdc40ce071599f68896df2709df",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mocki-toki",
+        "ref": "main",
+        "repo": "exetrouter",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -232,6 +253,7 @@
     "root": {
       "inputs": {
         "disko": "disko",
+        "exetrouter": "exetrouter",
         "home-manager": "home-manager",
         "impermanence": "impermanence",
         "lanzaboote": "lanzaboote",

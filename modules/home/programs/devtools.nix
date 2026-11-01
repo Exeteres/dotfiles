@@ -1,29 +1,27 @@
-{pkgs, ...}: {
+{pkgs, ...}: let
+  orca = pkgs.callPackage ./orca.nix {};
+in {
   home.packages = with pkgs; [
     # language support
     alejandra
     nil
-    python3
 
     # other tools
-    ansi2html
     wireshark
-    nmap
     devenv
     direnv
     gh
-    grpcurl
     kubectl
     kubernetes-helm
     k9s
     portal
+    orca
+    skills
+    yandex-cloud
   ];
 
   programs.opencode.enable = true;
-
-  programs.vscode = {
-    enable = true;
-  };
+  programs.vscode.enable = true;
 
   programs.git = {
     enable = true;

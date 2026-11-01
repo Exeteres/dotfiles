@@ -1,0 +1,15 @@
+keys:
+  - &host_rebecca_tpm age1tag1qvxh2wmpuktsgnqqpp06egwajkr5lwqm7kh59ltxa4f0j5cm4vxrqndxnhu
+  - &host_rebecca_yubikey age1yubikey1qtn59tp3en77x3n2zjhd774yjsfe3dkgfmlphyp6z20d5fek0e9cga3ha4y
+
+creation_rules:
+  - path_regex: '(^|/)([^/]+\.)?private\.nix\.enc$'
+    key_groups:
+      - age:
+          - *host_rebecca_tpm
+          - *host_rebecca_yubikey
+  - path_regex: hosts/rebecca/secrets/.*
+    key_groups:
+      - age:
+          - *host_rebecca_tpm
+          - *host_rebecca_yubikey

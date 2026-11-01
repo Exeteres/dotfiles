@@ -1,10 +1,20 @@
-{config, lib, pkgs, ...}: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
   imports = [
     ./gnome
     ./other/fonts.nix
   ];
 
   networking.networkmanager.enable = true;
+
+  exeteres.sshAgentMux = {
+    enable = lib.mkDefault true;
+    gnomeKeyring.enable = lib.mkDefault true;
+  };
 
   services = {
     fstrim.enable = true;
@@ -17,6 +27,11 @@
       alsa.support32Bit = true;
       pulse.enable = true;
     };
+  };
+
+  environment.sessionVariables = {
+    DO_NOT_TRACK = "1";
+    DOTNET_CLI_TELEMETRY_OPTOUT = "1";
   };
 
   security.rtkit.enable = true;

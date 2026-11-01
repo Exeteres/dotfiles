@@ -1,7 +1,9 @@
 {
   imports = [
     ./disk.nix
+    ./pivy-agent
     ./shell.nix
+    ./ssh-agent-mux
     ./tpm.nix
     ./unfree.nix
   ];

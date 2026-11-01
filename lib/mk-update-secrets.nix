@@ -21,17 +21,10 @@ in
         exit 1
       fi
 
-      tpm_identity_file=${pkgs.lib.escapeShellArg tpmIdentityFile}
-      unset SOPS_AGE_KEY
-      if [[ -r $tpm_identity_file ]]; then
-        unset SOPS_AGE_KEY_CMD
-        export SOPS_AGE_KEY_FILE=$tpm_identity_file
-      else
-        unset SOPS_AGE_KEY_FILE
-        printf -v age_key_command ' %q' "''${sudo_command[@]}" "$(command -v cat)" "$tpm_identity_file"
-        export SOPS_AGE_KEY_CMD=''${age_key_command# }
-      fi
-
+      tpm_identity_file=$(realpath -m ${pkgs.lib.escapeShellArg tpmIdentityFile})
+      ${pkgs.lib.optionalString (yubikeyIdentityFile != null) ''
+      yubikey_identity_file=$(realpath -m ${pkgs.lib.escapeShellArg yubikeyIdentityFile})
+      ''}
       secure_boot_sops_file=$(realpath -m ${pkgs.lib.escapeShellArg secureBootFile})
       sops_config=$(realpath -m ${pkgs.lib.escapeShellArg sopsConfig})
 
@@ -51,26 +44,35 @@ in
 
       verify_encrypted() {
         encrypted_file=$1
+        tpm_home="$temporary/tpm-home"
+        mkdir -m 0700 "$tpm_home"
 
-        if ! sops decrypt "$encrypted_file" > /dev/null; then
+        if ! "''${sudo_command[@]}" env -i \
+          HOME="$tpm_home" \
+          PATH="$PATH" \
+          SOPS_AGE_KEY_FILE="$tpm_identity_file" \
+          "$(command -v sops)" decrypt "$encrypted_file" > /dev/null; then
           log_error "Failed to verify generated Secure Boot secrets for $secure_boot_sops_file."
-          log_error "SOPS could not decrypt the generated ciphertext. Check the configured recipients and age plugins."
+          log_error "SOPS could not decrypt the generated ciphertext using the configured TPM identity."
           log_warning "The encrypted destination file was not modified."
           return 1
         fi
+        log_success "Verified generated Secure Boot secrets with the TPM identity"
         ${pkgs.lib.optionalString (yubikeyIdentityFile != null) ''
-        if ! env \
-          -u SOPS_AGE_KEY \
-          -u SOPS_AGE_KEY_CMD \
-          SOPS_AGE_KEY_FILE=${pkgs.lib.escapeShellArg yubikeyIdentityFile} \
-          sops decrypt "$encrypted_file" > /dev/null; then
+        yubikey_home="$temporary/yubikey-home"
+        mkdir -m 0700 "$yubikey_home"
+        if ! env -i \
+          HOME="$yubikey_home" \
+          PATH="$PATH" \
+          SOPS_AGE_KEY_FILE="$yubikey_identity_file" \
+          "$(command -v sops)" decrypt "$encrypted_file" > /dev/null; then
           log_error "Failed to verify generated Secure Boot secrets for $secure_boot_sops_file with a YubiKey."
           log_error "SOPS could not decrypt the generated ciphertext using the configured YubiKey identity."
           log_warning "The encrypted destination file was not modified."
           return 1
         fi
+        log_success "Verified generated Secure Boot secrets with the YubiKey identity"
       ''}
-        log_success "Verified generated Secure Boot secrets"
       }
 
       log_info "Encrypting Secure Boot keys"

@@ -1,10 +1,18 @@
-{pkgs, ...}: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
   imports = [
     ./minimal.nix
     ./other/boot.nix
     ./other/i18n.nix
     ./other/sound.nix
     ./other/timezone.nix
+    ./other/vpn.nix
+    ./other/smartcard.nix
+    ./other/exetrouter.nix
   ];
 
   services.flatpak.enable = true;
@@ -20,6 +28,12 @@
 
   virtualisation.podman.enable = true;
 
+  networking = {
+    firewall.allowedTCPPorts = [8080 6768];
+    nameservers = ["1.1.1.1" "1.0.0.1"];
+    networkmanager.dns = "none";
+  };
+
   boot.kernelPackages = pkgs.linuxPackages_zen;
 
   boot.loader = {
@@ -32,10 +46,14 @@
 
   home-manager.useGlobalPkgs = true;
 
-  environment.sessionVariables = {
-    DO_NOT_TRACK = "1";
-    DOTNET_CLI_TELEMETRY_OPTOUT = "1";
-  };
-
   services.earlyoom.enable = true;
+
+  environment.persistence = lib.mkIf config.exeteres.disk.enable {
+    "/persistent".directories = [
+      "/var/lib/docker"
+      "/var/lib/containers"
+      "/var/lib/flatpak"
+      "/var/lib/wg-feed"
+    ];
+  };
 }

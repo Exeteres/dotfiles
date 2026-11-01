@@ -28,10 +28,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-flatpak.url = {
-      url = "github:gmodena/nix-flatpak";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nix-flatpak.url = "github:gmodena/nix-flatpak";
 
     lanzaboote = {
       url = "github:nix-community/lanzaboote";
@@ -42,9 +39,18 @@
       url = "github:Exeteres/wg-feed";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    exetrouter = {
+      url = "github:mocki-toki/exetrouter/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs @ {self, nixpkgs, ...}: let
+  outputs = inputs @ {
+    self,
+    nixpkgs,
+    ...
+  }: let
     system = "x86_64-linux";
     lib = nixpkgs.lib;
     pkgs = nixpkgs.legacyPackages.${system};
@@ -55,15 +61,15 @@
     ];
 
     hostModules = [
-      self.nixosModules.minimal
-      self.nixosModules.exeteres-minimal
-      ./hosts/amsonia
+      self.nixosModules.workstation
+      self.nixosModules.exeteres-workstation
+      ./hosts/rebecca
     ];
 
     bootstrapModules = [
       self.nixosModules.minimal
       self.nixosModules.exeteres-minimal
-      ./hosts/amsonia/sops.nix
+      ./hosts/rebecca/sops.nix
     ];
   in {
     lib = import ./lib;
@@ -101,8 +107,11 @@
         imports = [
           inputs.sops-nix.nixosModules.sops
           inputs.home-manager.nixosModules.home-manager
+          inputs.wg-feed.nixosModules.wg-feed
           ./modules/desktop/workstation.nix
         ];
+
+        _module.args.exetrouter = inputs.exetrouter;
 
         home-manager.sharedModules = [
           inputs.nix-flatpak.homeManagerModules.nix-flatpak
@@ -118,27 +127,34 @@
       workstation = ./modules/home/workstation.nix;
     };
 
-    nixosConfigurations.amsonia = lib.nixosSystem {
+    nixosConfigurations.rebecca = lib.nixosSystem {
       inherit system;
       modules = commonModules ++ hostModules;
     };
 
     apps.${system} = {
-      amsonia-iso = self.lib.mkIsoInstaller {
+      rebecca-iso = self.lib.mkIsoInstaller {
         inherit nixpkgs pkgs;
-        hostName = "amsonia";
+        hostName = "rebecca";
         modules = commonModules ++ bootstrapModules;
-        installer.configuration = self.nixosConfigurations.amsonia;
+        installer.configuration = self.nixosConfigurations.rebecca;
       };
 
-      amsonia-kexec = self.lib.mkKexec {
+      rebecca-kexec = self.lib.mkKexec {
         inherit nixpkgs pkgs;
-        hostName = "amsonia";
+        hostName = "rebecca";
         modules = commonModules ++ bootstrapModules;
-        installer.configuration = self.nixosConfigurations.amsonia;
+        installer.configuration = self.nixosConfigurations.rebecca;
+      };
+
+      rebecca-update-secrets = self.lib.mkUpdateSecrets {
+        inherit pkgs;
+        secureBootFile = "hosts/rebecca/secrets/secure-boot-keys.yaml";
+        tpmIdentityFile = "hosts/rebecca/secrets/age-tpm-identity";
+        yubikeyIdentityFile = "hosts/rebecca/secrets/age-yubikey-identity";
       };
     };
 
-    checks.${system}.amsonia = self.nixosConfigurations.amsonia.config.system.build.toplevel;
+    checks.${system}.rebecca = self.nixosConfigurations.rebecca.config.system.build.toplevel;
   };
 }

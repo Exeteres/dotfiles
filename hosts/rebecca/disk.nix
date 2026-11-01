@@ -1,7 +1,7 @@
 {
   exeteres.disk = {
     enable = true;
-    device = "/dev/disk/by-id/replace-with-amsonia-disk";
+    device = "/dev/disk/by-id/nvme-eui.e8238fa6bf530001001b444a45927103";
     swapSize = "40G";
     retentionDays = 30;
   };

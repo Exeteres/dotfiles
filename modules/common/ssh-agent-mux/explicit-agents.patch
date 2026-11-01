@@ -1,0 +1,129 @@
+diff --git a/src/bin/mux.rs b/src/bin/mux.rs
+index 53ab7a6..f60e590 100644
+--- a/src/bin/mux.rs
++++ b/src/bin/mux.rs
+@@ -48,11 +48,15 @@ struct StartArgs {
+     #[arg(short, long = "agent", value_name = "PATH")]
+     agents: Vec<PathBuf>,
+ 
++    /// Only use explicit backend sockets, including an empty list
++    #[arg(long)]
++    no_discovery: bool,
++
+     /// Run in foreground (default: daemonize)
+     #[arg(short, long)]
+     foreground: bool,
+ 
+-    /// /proc poll interval in seconds for agent discovery fallback (0 to disable)
++    /// Backend refresh interval in seconds (0 disables background refresh)
+     #[arg(long, default_value = "300")]
+     refresh_interval: u64,
+ 
+@@ -193,6 +197,7 @@ fn do_refresh(
+     sign_timeout: Duration,
+     exclude: &[PathBuf],
+     primary_agent: Option<&Path>,
++    agents: Option<&[PathBuf]>,
+     refresh_mutex: &Mutex<()>,
+     locked: &AtomicBool,
+     blocking: bool,
+@@ -219,7 +224,13 @@ fn do_refresh(
+         }
+     };
+ 
+-    let new_state = discover_and_build(discover_timeout, sign_timeout, exclude, primary_agent)?;
++    let new_state = if let Some(agents) = agents {
++        let mut next = mux::build_mux_state_validated(agents, discover_timeout, sign_timeout)?;
++        next.primary_agent = primary_agent.map(PathBuf::from);
++        next
++    } else {
++        discover_and_build(discover_timeout, sign_timeout, exclude, primary_agent)?
++    };
+     let count = new_state.key_map.len();
+     let old = state.load();
+     let old_count = old.key_map.len();
+@@ -361,12 +372,17 @@ fn refresh_loop(
+     locked: Arc<AtomicBool>,
+     exclude: Vec<PathBuf>,
+     primary_agent: Option<PathBuf>,
++    agents: Option<Vec<PathBuf>>,
+     refresh_mutex: Arc<Mutex<()>>,
+ ) {
+     let runtime = runtime_dir();
+     let extra_dirs: Vec<&Path> = vec![runtime.as_path()];
+-    let mut watcher = watch::AgentWatcher::new(&extra_dirs).ok();
+-    if watcher.is_none() {
++    let mut watcher = if agents.is_none() {
++        watch::AgentWatcher::new(&extra_dirs).ok()
++    } else {
++        None
++    };
++    if agents.is_none() && watcher.is_none() {
+         warn!("inotify unavailable, falling back to polling only");
+     }
+ 
+@@ -398,6 +414,7 @@ fn refresh_loop(
+             sign_timeout,
+             &exclude,
+             primary_agent.as_deref(),
++            agents.as_deref(),
+             &refresh_mutex,
+             &locked,
+             false, // non-blocking in refresh loop
+@@ -547,7 +564,7 @@ fn kill_stale_daemon(pid_path: &Path) {
+ fn run_daemon(cli: StartArgs) -> anyhow::Result<()> {
+     let discover_timeout = Duration::from_secs(cli.timeout);
+     let sign_timeout = Duration::from_secs(cli.sign_timeout);
+-    let auto_discover = cli.agents.is_empty();
++    let auto_discover = cli.agents.is_empty() && !cli.no_discovery;
+ 
+     let sock_dir = cli
+         .socket
+@@ -587,7 +604,7 @@ fn run_daemon(cli: StartArgs) -> anyhow::Result<()> {
+         s
+     };
+ 
+-    if state.key_map.is_empty() && !auto_discover {
++    if state.key_map.is_empty() && !auto_discover && !cli.no_discovery {
+         let paths: Vec<_> = cli.agents.iter().map(|p| p.display().to_string()).collect();
+         bail!(
+             "No live agents found. Tried: {}. Run `ssh-agent-probe` to diagnose.",
+@@ -626,12 +643,13 @@ fn run_daemon(cli: StartArgs) -> anyhow::Result<()> {
+     let start_time = Instant::now();
+ 
+     // Spawn refresh thread
+-    if auto_discover && cli.refresh_interval > 0 {
++    if cli.refresh_interval > 0 {
+         let state = Arc::clone(&state);
+         let shutdown = Arc::clone(&shutdown);
+         let reload = Arc::clone(&reload);
+         let interval = Duration::from_secs(cli.refresh_interval);
+         let primary = cli.primary_agent.clone();
++        let agents = (!auto_discover).then(|| cli.agents.clone());
+         let rm = Arc::clone(&refresh_mutex);
+         let locked = Arc::clone(&locked);
+         let exclude = exclude_sockets.clone();
+@@ -646,6 +664,7 @@ fn run_daemon(cli: StartArgs) -> anyhow::Result<()> {
+                 locked,
+                 exclude,
+                 primary,
++                agents,
+                 rm,
+             )
+         });
+@@ -654,6 +673,7 @@ fn run_daemon(cli: StartArgs) -> anyhow::Result<()> {
+     // Build sync refresh closure for control socket
+     let exclude_for_ctl = exclude_sockets;
+     let primary_for_ctl = cli.primary_agent.clone();
++    let agents_for_ctl = (!auto_discover).then(|| cli.agents.clone());
+     let state_for_ctl = Arc::clone(&state);
+     let rm_for_ctl = Arc::clone(&refresh_mutex);
+     let locked_for_ctl = Arc::clone(&locked);
+@@ -664,6 +684,7 @@ fn run_daemon(cli: StartArgs) -> anyhow::Result<()> {
+             sign_timeout,
+             &exclude_for_ctl,
+             primary_for_ctl.as_deref(),
++            agents_for_ctl.as_deref(),
+             &rm_for_ctl,
+             &locked_for_ctl,
+             true, // blocking for control socket
