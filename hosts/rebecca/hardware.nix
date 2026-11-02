@@ -14,7 +14,5 @@
     enableRedistributableFirmware = true;
   };
 
-  services.fprintd.enable = true;
-
   security.lsm = ["lockdown"];
 }
