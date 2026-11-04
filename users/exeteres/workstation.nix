@@ -4,6 +4,7 @@
   ...
 }: let
   githubKey = lib.removeSuffix "\n" (builtins.readFile ./keys/rebecca-github.pub);
+  opencodeDesktop = import ../../modules/home/programs/opencode-desktop-frameless.nix {inherit pkgs;};
 in {
   imports = [./minimal.nix];
 
@@ -30,6 +31,8 @@ in {
       enable = true;
       extraPackages = [pkgs.wl-clipboard];
     };
+
+    home.packages = [opencodeDesktop];
 
     programs.git.settings = {
       user = {
