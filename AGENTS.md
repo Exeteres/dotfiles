@@ -3,6 +3,8 @@
 - This repository configures NixOS host `rebecca` and Home Manager. Keep shared
   configuration in `modules/`, host specifics in `hosts/rebecca/`, and user
   profiles in `users/`.
+- When a module grows into a directory, move its entry point from `name.nix`
+  to `name/default.nix`, update relative paths, and import the directory.
 - Preserve existing staged and unstaged work. Do not stage or commit unless
   asked; the installed pre-commit hook stages encrypted private modules.
 - Do not deploy, switch configurations, modify disks/bootloaders, or reboot

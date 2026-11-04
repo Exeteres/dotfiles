@@ -1,2 +1,6 @@
 private.nix
 *.private.nix
+
+# Python bytecode caches
+__pycache__/
+*.py[cod]
