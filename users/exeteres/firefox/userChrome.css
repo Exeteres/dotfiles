@@ -1,0 +1,35 @@
+#TabsToolbar {
+  visibility: collapse !important;
+}
+
+#sidebar-button {
+  margin-left: 10px;
+}
+
+#sidebar-box {
+  min-width: 250px;
+  max-width: 250px;
+  min-height: unset;
+  max-height: unset;
+  border-right: none;
+}
+
+#sidebar-splitter {
+  display: none;
+}
+
+#PersonalToolbar {
+  display: none;
+}
+
+#navigator-toolbox {
+  border-bottom: none !important;
+}
+
+#sidebar-header {
+  display: none;
+}
+
+#urlbar-input {
+  height: 30px !important;
+}

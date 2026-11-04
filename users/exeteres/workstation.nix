@@ -8,6 +8,8 @@ in {
   imports = [./minimal.nix];
 
   home-manager.users.exeteres = {lib, ...}: {
+    imports = [./firefox];
+
     home.file.".ssh/allowed_signers".text = ''
       exeteres@proton.me ${githubKey}
     '';
