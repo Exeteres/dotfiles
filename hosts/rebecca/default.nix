@@ -1,6 +1,7 @@
 {
   imports = [
     ./hardware.nix
+    ./fingerprint.nix
     ./sops.nix
     ./disk.nix
   ];
