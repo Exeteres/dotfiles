@@ -11,7 +11,6 @@ in {
     unite
     just-perfection
     clipboard-indicator
-    quick-settings-tweaker
     advanced-media-controller
   ];
 
@@ -25,7 +24,6 @@ in {
         "advanced-media-controller@sanjai.com"
         "just-perfection-desktop@just-perfection"
         "clipboard-indicator@tudmotu.com"
-        "quick-settings-tweaks@qwreey"
       ];
     };
 
@@ -72,12 +70,6 @@ in {
       cache-size = 100;
       cache-only-favorites = false;
       disable-down-arrow = true;
-    };
-
-    # Quick Settings Tweaker
-    "org/gnome/shell/extensions/quick-settings-tweaks" = {
-      notifications-enabled = false;
-      user-removed-buttons = ["NightLightToggle" "DarkModeToggle" "NMVpnToggle"];
     };
   };
 }
