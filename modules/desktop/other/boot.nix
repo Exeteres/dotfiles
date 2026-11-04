@@ -1,7 +1,6 @@
 {
   boot = {
     consoleLogLevel = 3;
-    initrd.verbose = false;
     kernelParams = [
       "quiet"
       "splash"
@@ -9,7 +8,5 @@
       "udev.log_priority=3"
       "rd.systemd.show_status=auto"
     ];
-
-    initrd.systemd.enable = true;
   };
 }

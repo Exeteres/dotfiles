@@ -20,7 +20,6 @@
     impermanence = {
       url = "github:nix-community/impermanence";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
     };
 
     nixvim = {
@@ -155,6 +154,9 @@
       };
     };
 
-    checks.${system}.rebecca = self.nixosConfigurations.rebecca.config.system.build.toplevel;
+    checks.${system} = import ./checks {
+      inherit lib pkgs;
+      config = self.nixosConfigurations.rebecca.config;
+    };
   };
 }

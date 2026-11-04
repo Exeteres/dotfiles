@@ -25,7 +25,6 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    boot.initrd.systemd.enable = true;
     boot.initrd.luks.devices.cryptroot.keyFile = lib.mkForce null;
 
     boot.initrd.systemd.services.rotate-impermanent-root = {

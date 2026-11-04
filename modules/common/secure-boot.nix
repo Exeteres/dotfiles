@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }: let
@@ -14,6 +15,10 @@
   syncUnits = lib.optionals useSystemdActivation ["sync-secure-boot-secrets.service"];
   stagingDirectory = "/run/secrets/secure-boot";
   destinationDirectory = "/var/lib/sbctl";
+  trustedKernel = config.boot.kernelPackages.rebuildImage {
+    inherit (config.system) modulesTree;
+  };
+  trustedKernelPath = "${trustedKernel}/${config.system.boot.loader.kernelFile}";
   syncSecureBootSecrets = pkgs.writeShellApplication {
     name = "sync-secure-boot-secrets";
     runtimeInputs = [pkgs.coreutils];
@@ -64,6 +69,20 @@ in {
     ];
 
     boot = {
+      # Newer kernels enforce lockdown, but their module certificates must be
+      # inserted into the final image. Keep older, pre-rebuildImage pins working.
+      bootspec.writer = lib.mkIf (config.boot.kernelPackages ? rebuildImage) (lib.mkForce (
+        options.boot.bootspec.writer.default
+        + "\n"
+        + ''
+          ln -sf ${lib.escapeShellArg trustedKernelPath} "$out/kernel"
+          ${pkgs.buildPackages.jq}/bin/jq \
+            --arg kernel ${lib.escapeShellArg trustedKernelPath} \
+            '."org.nixos.bootspec.v1".kernel = $kernel' \
+            "$out/boot.json" > "$out/boot.json.tmp"
+          mv "$out/boot.json.tmp" "$out/boot.json"
+        ''
+      ));
       lanzaboote = {
         enable = true;
         pkiBundle = destinationDirectory;
