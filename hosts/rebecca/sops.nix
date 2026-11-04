@@ -44,22 +44,6 @@
         sopsFile = ./secrets/vpn.json;
         format = "binary";
       };
-      "ssh/private_key" = {
-        sopsFile = ./secrets/ssh-private-key.json;
-        format = "binary";
-        path = "/home/exeteres/.ssh/id_ed25519";
-        owner = "exeteres";
-        group = config.users.users.exeteres.group;
-        mode = "0600";
-      };
-      "ssh/public_key" = {
-        sopsFile = ./secrets/ssh-public-key.json;
-        format = "binary";
-        path = "/home/exeteres/.ssh/id_ed25519.pub";
-        owner = "exeteres";
-        group = config.users.users.exeteres.group;
-        mode = "0644";
-      };
       age_key = {
         sopsFile = ./secrets/age-key.json;
         format = "binary";

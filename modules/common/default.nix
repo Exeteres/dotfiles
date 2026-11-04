@@ -1,5 +1,6 @@
 {
   imports = [
+    ./bitwarden-agent
     ./disk.nix
     ./pivy-agent
     ./shell.nix
