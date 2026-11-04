@@ -12,7 +12,6 @@
     ./other/timezone.nix
     ./other/vpn.nix
     ./other/smartcard.nix
-    ./other/exetrouter.nix
   ];
 
   services.flatpak.enable = true;

@@ -37,16 +37,19 @@
     },
     "exetrouter": {
       "inputs": {
+        "home-manager": [
+          "home-manager"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1793534897,
-        "narHash": "sha256-Idqug7VW+v0xDtjO1CHOzkIjyU2dxK1R0QY3emdUmGw=",
+        "lastModified": 1793832220,
+        "narHash": "sha256-WOqSU4X/PJBI7NmYDpvZmZp9b85tUkN64LcbCQmx5m0=",
         "owner": "mocki-toki",
         "repo": "exetrouter",
-        "rev": "1cf0b9a47cfe1bdc40ce071599f68896df2709df",
+        "rev": "c0df09066af5a90bb597fa651b49439d014ad963",
         "type": "github"
       },
       "original": {

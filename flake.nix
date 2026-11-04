@@ -20,6 +20,7 @@
     impermanence = {
       url = "github:nix-community/impermanence";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
     };
 
     nixvim = {
@@ -42,6 +43,7 @@
     exetrouter = {
       url = "github:mocki-toki/exetrouter/main";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
     };
   };
 
@@ -107,10 +109,9 @@
           inputs.sops-nix.nixosModules.sops
           inputs.home-manager.nixosModules.home-manager
           inputs.wg-feed.nixosModules.wg-feed
+          (import ./modules/desktop/workstation.private.nix {inherit inputs;})
           ./modules/desktop/workstation.nix
         ];
-
-        _module.args.exetrouter = inputs.exetrouter;
 
         home-manager.sharedModules = [
           inputs.nix-flatpak.homeManagerModules.nix-flatpak
