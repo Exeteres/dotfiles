@@ -75,7 +75,7 @@
       self.nixosModules.workstation-private
       self.nixosModules.exeteres-workstation
       ./hosts/rebecca
-      self.nixosModules.rebecca-private
+      (privateModule ./hosts/rebecca/private.nix)
     ];
 
     bootstrapModules = [
@@ -106,7 +106,6 @@
       exeteres-shell = ./users/exeteres/shell.nix;
       exeteres-minimal = ./users/exeteres/minimal.nix;
       exeteres-workstation = ./users/exeteres/workstation.nix;
-      rebecca-private = privateModule ./hosts/rebecca/private.nix;
 
       secure-boot = {
         imports = [
@@ -135,7 +134,7 @@
         imports = [
           (import (privateModule ./modules/desktop/workstation.private.nix) {inherit inputs;})
         ];
-        home-manager.sharedModules = [self.homeModules.workstation-private];
+        home-manager.sharedModules = [(privateModule ./modules/home/programs/private.nix)];
       };
     };
 
@@ -143,7 +142,6 @@
       default = ./modules/home;
       minimal = ./modules/home/minimal.nix;
       workstation = ./modules/home/workstation.nix;
-      workstation-private = privateModule ./modules/home/programs/private.nix;
     };
 
     nixosConfigurations.rebecca = lib.nixosSystem {

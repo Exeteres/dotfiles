@@ -42,10 +42,9 @@ Resolve the error and rerun decryption before evaluating the configuration.
 
 Public exports (`nixosModules.workstation` and `homeModules.default` /
 `homeModules.workstation`) contain public configuration. Select private
-configuration explicitly with `nixosModules.workstation-private`, which also
-adds `homeModules.workstation-private` to Home Manager. Standalone Home Manager
-consumers can import `homeModules.workstation-private` directly. Rebecca also
-selects `nixosModules.rebecca-private` for its host configuration.
+configuration explicitly with `nixosModules.workstation-private`, which includes
+the private Home Manager configuration. Rebecca's host-specific private module
+is selected internally by its NixOS configuration.
 
 Prepare private configuration before Nix evaluation using an identity authorized
 by `.sops.yaml`. From this checkout:
