@@ -347,11 +347,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793578343,
-        "narHash": "sha256-Ma5DVKSx2QWx681jTdg54nHNqIdd1Ds2q6q55gSUU9g=",
+        "lastModified": 1793837585,
+        "narHash": "sha256-3vcy7ylIsJqqLI1gtAua6egnJXqyRweOcFwCvIZg/18=",
         "owner": "Exeteres",
         "repo": "wg-feed",
-        "rev": "ffff3666d83551e86a8816fc81981f50104d4cfe",
+        "rev": "68419ba2ebb4661ce947c8fde0edfd070cde7d50",
         "type": "github"
       },
       "original": {

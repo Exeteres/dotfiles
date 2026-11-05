@@ -20,6 +20,7 @@ in {
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
+      includes = ["~/.ssh/config.local"];
       settings."github.com" = {
         User = "git";
         IdentityFile = "~/.ssh/rebecca-github.pub";
