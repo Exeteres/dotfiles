@@ -1,5 +1,9 @@
 # Repository instructions
 
+- Create `README.md` files only when explicitly requested by the user.
+- Use single-line Conventional Commit messages: `type(scope): imperative summary`,
+  with an optional scope and a lowercase summary, e.g.
+  `refactor(secrets): share encrypted credentials across hosts`.
 - This repository configures NixOS host `rebecca` and Home Manager. Keep shared
   configuration in `modules/`, host specifics in `hosts/rebecca/`, and user
   profiles in `users/`.

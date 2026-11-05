@@ -3,7 +3,8 @@
 NixOS and Home Manager configuration for **rebecca** and other external systems, with reusable system and
 home modules, SOPS secrets, and installer helpers.
 
-- `hosts/rebecca/`: hardware, storage, and host secrets.
+- `hosts/rebecca/`: hardware, storage, hardware identities, and Secure Boot secrets.
+- `secrets/`: encrypted credentials shared by all hosts.
 - `modules/`: shared system, desktop, and home configuration.
 - `users/`: user profiles.
 - `lib/`: installer and maintenance helpers.

@@ -8,7 +8,7 @@ Private modules use these names anywhere in the repository:
 | `example.private.nix.enc` | `example.private.nix` |
 
 SOPS stores the entire Nix source as an encrypted binary document in a JSON
-envelope. Recipients come from `.sops.yaml` (Rebecca's TPM and YubiKey).
+envelope. Recipients come from `.sops.yaml` (Rebecca's and Lycoris's TPMs and YubiKeys).
 Plaintext files are written atomically with mode `0600`.
 
 ## Setup per clone

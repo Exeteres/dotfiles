@@ -34,18 +34,18 @@
   sops.secrets = lib.mkMerge [
     {
       exeteres-password = {
-        sopsFile = ./secrets/password.yaml;
+        sopsFile = ../../secrets/password.yaml;
         key = "hashed-password";
         neededForUsers = true;
       };
     }
     (lib.mkIf config.services.flatpak.enable {
       wg-feed-env = {
-        sopsFile = ./secrets/vpn.json;
+        sopsFile = ../../secrets/vpn.json;
         format = "binary";
       };
       age_key = {
-        sopsFile = ./secrets/age-key.json;
+        sopsFile = ../../secrets/age-key.json;
         format = "binary";
         path = "/home/exeteres/.config/age/key";
         owner = "exeteres";
