@@ -4,7 +4,6 @@
     ./fingerprint.nix
     ./sops.nix
     ./disk.nix
-    ./private.nix
   ];
 
   boot.loader = {

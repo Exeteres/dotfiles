@@ -55,6 +55,15 @@
     system = "x86_64-linux";
     lib = nixpkgs.lib;
     pkgs = nixpkgs.legacyPackages.${system};
+    privateModule = path:
+      if builtins.pathExists path
+      then path
+      else
+        throw ''
+          Missing decrypted private module: ${toString path}
+          Run scripts/with-private-nix with an authorized SOPS identity before evaluating private configuration.
+          External consumers must use its local path input override.
+        '';
 
     commonModules = [
       self.nixosModules.default
@@ -63,8 +72,10 @@
 
     hostModules = [
       self.nixosModules.workstation
+      self.nixosModules.workstation-private
       self.nixosModules.exeteres-workstation
       ./hosts/rebecca
+      self.nixosModules.rebecca-private
     ];
 
     bootstrapModules = [
@@ -95,6 +106,7 @@
       exeteres-shell = ./users/exeteres/shell.nix;
       exeteres-minimal = ./users/exeteres/minimal.nix;
       exeteres-workstation = ./users/exeteres/workstation.nix;
+      rebecca-private = privateModule ./hosts/rebecca/private.nix;
 
       secure-boot = {
         imports = [
@@ -109,7 +121,6 @@
           inputs.sops-nix.nixosModules.sops
           inputs.home-manager.nixosModules.home-manager
           inputs.wg-feed.nixosModules.wg-feed
-          (import ./modules/desktop/workstation.private.nix {inherit inputs;})
           ./modules/desktop/workstation.nix
         ];
 
@@ -119,12 +130,20 @@
           ./modules/home/workstation.nix
         ];
       };
+
+      workstation-private = {
+        imports = [
+          (import (privateModule ./modules/desktop/workstation.private.nix) {inherit inputs;})
+        ];
+        home-manager.sharedModules = [self.homeModules.workstation-private];
+      };
     };
 
     homeModules = {
       default = ./modules/home;
       minimal = ./modules/home/minimal.nix;
       workstation = ./modules/home/workstation.nix;
+      workstation-private = privateModule ./modules/home/programs/private.nix;
     };
 
     nixosConfigurations.rebecca = lib.nixosSystem {

@@ -1,0 +1,60 @@
+#!/bin/sh
+set -eu
+
+usage() {
+  command cat <<'EOF'
+Usage: scripts/with-private-nix [--identity FILE] [--input NAME | --self] -- COMMAND...
+
+Decrypt this checkout's private modules, then run a Nix flake command using
+this checkout as a path input. The input name defaults to dotfiles.
+
+Examples:
+  scripts/with-private-nix --identity /path/to/identity -- \
+    nix flake check path:/path/to/consumer --no-build
+  scripts/with-private-nix -- \
+    nixos-rebuild build --flake path:/path/to/consumer#lycoris
+
+SOPS_AGE_KEY_FILE and normal SOPS identity discovery are supported.
+For this checkout's own flake, use --self and path:. as the target.
+EOF
+}
+
+input=dotfiles
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --identity|--input)
+      if [ "$#" -lt 2 ] || [ -z "$2" ]; then
+        usage >&2
+        exit 2
+      fi
+      case "$1" in
+        --identity) export SOPS_AGE_KEY_FILE=$2 ;;
+        --input) input=$2 ;;
+      esac
+      shift 2
+      ;;
+    --help|-h) usage; exit 0 ;;
+    --self) input=; shift ;;
+    --) shift; break ;;
+    *) usage >&2; exit 2 ;;
+  esac
+done
+
+if [ "$#" -eq 0 ]; then
+  usage >&2
+  exit 2
+fi
+
+if [ -n "${SOPS_AGE_KEY_FILE:-}" ]; then
+  case "$SOPS_AGE_KEY_FILE" in
+    /*) ;;
+    *) export SOPS_AGE_KEY_FILE="$PWD/$SOPS_AGE_KEY_FILE" ;;
+  esac
+fi
+
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)
+"$root/scripts/private-nix" decrypt
+if [ -z "$input" ]; then
+  exec "$@"
+fi
+exec "$@" --override-input "$input" "path:$root"

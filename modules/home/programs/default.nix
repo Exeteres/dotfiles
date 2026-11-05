@@ -3,6 +3,5 @@
     ./flatpak.nix
     ./devtools.nix
     ./essentials.nix
-    ./private.nix
   ];
 }
