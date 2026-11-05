@@ -40,6 +40,33 @@ Resolve the error and rerun decryption before evaluating the configuration.
 
 ## Editing and building
 
+Public exports (`nixosModules.workstation` and `homeModules.default` /
+`homeModules.workstation`) contain public configuration. Select private
+configuration explicitly with `nixosModules.workstation-private`, which includes
+the private Home Manager configuration. Rebecca's host-specific private module
+is selected internally by its NixOS configuration.
+
+Prepare private configuration before Nix evaluation using an identity authorized
+by `.sops.yaml`. From this checkout:
+
+```sh
+scripts/with-private-nix --identity /path/to/host/age-tpm-identity --self -- \
+  nix flake check path:. --no-build
+```
+
+For a consuming flake with an input named `dotfiles`, the wrapper overrides that
+input with this decrypted checkout, including its ignored private modules:
+
+```sh
+/path/to/dotfiles/scripts/with-private-nix --identity /path/to/host/age-tpm-identity -- \
+  nixos-rebuild build --flake path:/path/to/consumer#lycoris
+```
+
+Use `--input NAME` for a different input name. The wrapper preserves the caller's
+working directory, honors `SOPS_AGE_KEY_FILE` and normal SOPS identity discovery,
+and stops before executing the command if decryption fails. A GitHub flake input
+provides the public exports; private exports require a prepared `path:` source.
+
 Edit the ignored `*.private.nix` / `private.nix`, then commit normally. For
 manual encryption without staging:
 

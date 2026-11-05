@@ -1,5 +1,7 @@
 {config, ...}: {
   sops.secrets."wg-feed-env" = {
+    sopsFile = ../../../secrets/vpn.json;
+    format = "binary";
     mode = "0600";
   };
 

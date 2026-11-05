@@ -4,6 +4,5 @@
     ./programs/devtools.nix
     ./programs/essentials.nix
     ./programs/flatpak.nix
-    ./programs/private.nix
   ];
 }

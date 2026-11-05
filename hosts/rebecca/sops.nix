@@ -40,10 +40,6 @@
       };
     }
     (lib.mkIf config.services.flatpak.enable {
-      wg-feed-env = {
-        sopsFile = ../../secrets/vpn.json;
-        format = "binary";
-      };
       age_key = {
         sopsFile = ../../secrets/age-key.json;
         format = "binary";

@@ -55,6 +55,15 @@
     system = "x86_64-linux";
     lib = nixpkgs.lib;
     pkgs = nixpkgs.legacyPackages.${system};
+    privateModule = path:
+      if builtins.pathExists path
+      then path
+      else
+        throw ''
+          Missing decrypted private module: ${toString path}
+          Run scripts/with-private-nix with an authorized SOPS identity before evaluating private configuration.
+          External consumers must use its local path input override.
+        '';
 
     commonModules = [
       self.nixosModules.default
@@ -63,8 +72,10 @@
 
     hostModules = [
       self.nixosModules.workstation
+      self.nixosModules.workstation-private
       self.nixosModules.exeteres-workstation
       ./hosts/rebecca
+      (privateModule ./hosts/rebecca/private.nix)
     ];
 
     bootstrapModules = [
@@ -109,7 +120,6 @@
           inputs.sops-nix.nixosModules.sops
           inputs.home-manager.nixosModules.home-manager
           inputs.wg-feed.nixosModules.wg-feed
-          (import ./modules/desktop/workstation.private.nix {inherit inputs;})
           ./modules/desktop/workstation.nix
         ];
 
@@ -118,6 +128,13 @@
           inputs.nixvim.homeModules.nixvim
           ./modules/home/workstation.nix
         ];
+      };
+
+      workstation-private = {
+        imports = [
+          (import (privateModule ./modules/desktop/workstation.private.nix) {inherit inputs;})
+        ];
+        home-manager.sharedModules = [(privateModule ./modules/home/programs/private.nix)];
       };
     };
 
