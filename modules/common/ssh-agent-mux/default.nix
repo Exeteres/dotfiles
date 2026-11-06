@@ -107,6 +107,7 @@ in {
 
     # Keep GNOME's socket activation from replacing the default client socket.
     systemd.user.sockets.gcr-ssh-agent = lib.mkIf config.services.gnome.gcr-ssh-agent.enable {
+      socketConfig.SocketMode = "0600";
       socketConfig.ExecStartPost = [
         ""
         "${pkgs.systemd}/bin/systemctl --user set-environment SSH_AUTH_SOCK=${socket}"
