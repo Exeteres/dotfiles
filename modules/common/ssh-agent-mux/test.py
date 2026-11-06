@@ -1,12 +1,14 @@
 """Isolated explicit-backend regression checks, run inside the Nix sandbox."""
 
 import os
+import json
 from pathlib import Path
 import socket
 import struct
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 
@@ -69,7 +71,7 @@ def main():
             wait_for_socket(path, process)
             return path
 
-        def start(name, *args, interval=0):
+        def start(name, *args, interval=0, extension_routes=None):
             directory = root / name
             directory.mkdir(mode=0o700)
             path = directory / "agent.sock"
@@ -77,7 +79,8 @@ def main():
                 [mux, "start", "--foreground", "--no-discovery",
                  "--refresh-interval", str(interval), "--socket", str(path),
                  "--pid-file", str(directory / "mux.pid"), *args],
-                env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                env=dict(env, SSH_AGENT_MUX_EXTENSION_ROUTES=json.dumps(extension_routes or {})),
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             )
             processes.append(process)
             wait_for_socket(directory / "control.sock", process)
@@ -89,6 +92,53 @@ def main():
             run(mux, "refresh", "--socket-dir", str(directory), env=env)
 
         try:
+            # Extension payloads must reach only the configured backend, even
+            # when it has no identities, and unsafe sockets remain rejected.
+            extension_path = root / "extension-backend"
+            listener = socket.socket(socket.AF_UNIX)
+            listener.bind(str(extension_path))
+            extension_path.chmod(0o600)
+            listener.listen()
+            extension_requests = []
+
+            def extension_backend():
+                while True:
+                    stream, _ = listener.accept()
+                    with stream:
+                        size = struct.unpack(">I", receive(stream, 4))[0]
+                        request = receive(stream, size)
+                        if request[0] == 11:
+                            reply = b"\x0c" + struct.pack(">I", 0)
+                        else:
+                            extension_requests.append(request)
+                            reply = b"\x06"
+                        stream.sendall(struct.pack(">I", len(reply)) + reply)
+
+            threading.Thread(target=extension_backend, daemon=True).start()
+            extension_name = b"custom@example.org"
+            extension_request = b"\x1b" + struct.pack(">I", len(extension_name)) + extension_name + b"fixture"
+
+            def extension_reply(path):
+                with socket.socket(socket.AF_UNIX) as stream:
+                    stream.settimeout(5)
+                    stream.connect(str(path))
+                    stream.sendall(struct.pack(">I", len(extension_request)) + extension_request)
+                    size = struct.unpack(">I", receive(stream, 4))[0]
+                    return receive(stream, size)
+
+            routed, _ = start(
+                "extensions", "--agent", str(extension_path),
+                extension_routes={extension_name.decode(): str(extension_path)},
+            )
+            assert extension_reply(routed) == b"\x06"
+            assert extension_requests == [extension_request]
+            unrouted, _ = start("unmapped-extensions", "--agent", str(extension_path))
+            assert extension_reply(unrouted) == b"\x1c"
+            assert extension_requests == [extension_request]
+            extension_path.chmod(0o666)
+            assert extension_reply(routed) == b"\x05"
+            assert extension_requests == [extension_request]
+
             backend = agent("backend")
             unrelated = agent("unrelated")
             env["SSH_AUTH_SOCK"] = str(unrelated)
