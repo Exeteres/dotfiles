@@ -1,0 +1,20 @@
+--- a/src/mux.rs
++++ b/src/mux.rs
+@@ -312,6 +312,17 @@
+         return forward_to_backend(backend_path, msg, state.sign_timeout, reload);
+     }
+ 
++    // Extensions without a key identity require an explicitly configured backend.
++    if let Ok(json) = std::env::var("SSH_AGENT_MUX_EXTENSION_ROUTES") {
++        if let Ok(routes) = serde_json::from_str::<HashMap<String, PathBuf>>(&json) {
++            if let Ok(name) = std::str::from_utf8(ext_name) {
++                if let Some(path) = routes.get(name) {
++                    return forward_to_backend(path, msg, state.sign_timeout, reload);
++                }
++            }
++        }
++    }
++
+     vec![proto::SSH_AGENT_EXTENSION_FAILURE]
+ }
+ 

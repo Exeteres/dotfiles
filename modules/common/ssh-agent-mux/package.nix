@@ -19,7 +19,7 @@ rustPlatform.buildRustPackage {
   cargoHash = "sha256-ZGbf4Av/eM67lq9VOjLbP826oKuOymE6epoX5Z/9ioE=";
 
   # Keep startup and identity refresh restricted to explicit backend sockets.
-  patches = [./explicit-agents.patch];
+  patches = [./explicit-agents.patch ./extension-routes.patch];
 
   # Integration tests require live agents and host-specific OpenSSH behavior.
   cargoTestFlags = ["--lib"];

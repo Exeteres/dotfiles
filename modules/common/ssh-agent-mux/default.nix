@@ -63,6 +63,13 @@ in {
       description = "Backend for ssh-add operations; null rejects additions. Custom sockets must also be listed in agents to expose their keys.";
     };
 
+    extensionAgents = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = {};
+      example = {"custom@example.org" = "%t/custom-agent.sock";};
+      description = "Explicit SSH agent extension routes. Each backend socket must also be configured as an agent. Unmapped extensions are rejected; OpenSSH session binding retains its key-based routing.";
+    };
+
     signTimeout = lib.mkOption {
       type = lib.types.ints.positive;
       default =
@@ -91,6 +98,10 @@ in {
         assertion = agents != [];
         message = "exeteres.sshAgentMux requires at least one backend: enable gnomeKeyring or pivy, or provide agents.";
       }
+      {
+        assertion = lib.all (agent: lib.elem agent agents) (lib.attrValues cfg.extensionAgents);
+        message = "exeteres.sshAgentMux.extensionAgents must route to configured backend sockets.";
+      }
     ];
 
     programs.ssh.startAgent = lib.mkDefault false;
@@ -115,6 +126,7 @@ in {
     };
 
     systemd.user.services.ssh-agent-mux = {
+      environment.SSH_AGENT_MUX_EXTENSION_ROUTES = builtins.toJSON cfg.extensionAgents;
       description = "SSH agent multiplexer";
       wantedBy = ["default.target"];
       requires = lib.optional cfg.gnomeKeyring.enable "gcr-ssh-agent.service";
