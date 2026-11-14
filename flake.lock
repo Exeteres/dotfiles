@@ -45,11 +45,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794501112,
-        "narHash": "sha256-VtBdeMEpOsPdvPp4YuzSqJlVx+qQSSVgqAjUKfMHR3s=",
+        "lastModified": 1794687788,
+        "narHash": "sha256-rFNcOwPoPF6W86VzBNhef1wIh8lXie1fEe8fk8Nk4Jc=",
         "owner": "mocki-toki",
         "repo": "exetrouter",
-        "rev": "2e5408907841d5f17abb40df8f951a10eccf4158",
+        "rev": "5421a5f4445b003c275ad1b159a98cfd197b808d",
         "type": "github"
       },
       "original": {
