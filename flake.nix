@@ -41,9 +41,14 @@
     };
 
     exetrouter = {
-      url = "github:mocki-toki/exetrouter/main";
+      url = "github:Exeteres/exetrouter/fix/opencode-2-3-compat";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
+    };
+
+    opencode = {
+      url = "github:anomalyco/opencode/v2.3.0";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -116,6 +121,7 @@
       };
 
       workstation = {
+        nixpkgs.overlays = [(import ./modules/desktop/opencode {inherit inputs;})];
         imports = [
           inputs.sops-nix.nixosModules.sops
           inputs.home-manager.nixosModules.home-manager
