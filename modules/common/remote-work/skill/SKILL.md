@@ -68,6 +68,42 @@ Close only tunnels/masters you own; never kill arbitrary processes to free ports
 
 ## VM maintenance
 
+### Tooling installation authorization
+
+On Rebecca's dedicated `dev` build server, the user authorizes agents to install
+any tooling required for requested development, builds and tests, including system
+packages via `sudo -n`. The `dev` login has passwordless sudo. Do not ask again for
+routine tooling installs there. **Prefer Nix for development packages**: use the
+repository's flake/devShell or pinned `nix shell`/`nix develop` inputs first. Nix is
+installed on `dev` and available in noninteractive SSH commands. Other installation
+methods (OS packages, official toolchain installers, language package managers)
+are also authorized without additional approval when needed or more suitable.
+Use the OS package manager for system dependencies, and record installed versions.
+Inspect installer sources and verify published checksums/signatures where available;
+do not pipe unreviewed network content into a root shell. This standing permission
+is limited to that remote development host: it does not authorize modifying the
+local NixOS system, other hosts, cloud IAM, secrets, deleting data, disabling security
+controls, stopping unrelated jobs or rebooting. Ask before those separate actions.
+On other hosts, obtain installation authorization first.
+
+### Containers on dev
+
+Docker Engine, Compose v2 and Buildx are installed on `dev` using Ubuntu's signed
+packages. The `dev` login belongs to the `docker` group and may run `docker`,
+`docker compose` and `docker buildx` without sudo over SSH. The system daemon uses
+its local Unix socket; do not expose a TCP Docker API or forward the agent's local
+Docker socket. Docker-group access is root-equivalent, like this host's authorized
+passwordless sudo. Nix remains preferred for development packages; containers are
+available for isolated services, image builds and container-based test harnesses.
+
+After membership changes, close only your own SSH control master and reconnect;
+existing sessions retain their old groups. Verify `docker info`, `docker compose
+version` and `docker buildx version` from a fresh session. Use per-project names
+and loopback-only published ports. Do not stop others' containers or run broad
+system/volume pruning without approval. Bind-mount only the intended workspace,
+not local secrets, SSH agent sockets or personal databases. Clean up only the
+containers/networks/volumes created by the current disposable test harness.
+
 `remote-work vm status|start|stop --id ID [--folder-id FOLDER]` uses an already
 authorized Yandex `yc` CLI locally. Discover/verify the resource and account first;
 `start` and especially `stop` need user approval. The helper will not create,
