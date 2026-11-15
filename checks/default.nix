@@ -4,6 +4,17 @@
   pkgs,
 }: {
   rebecca = config.system.build.toplevel;
+  remote-work =
+    pkgs.runCommand "remote-work-tests" {
+      nativeBuildInputs = [pkgs.python3 pkgs.git];
+    } ''
+      export HOME="$TMPDIR"
+      mkdir -p modules/common checks
+      cp -r --no-preserve=mode ${../modules/common/remote-work} modules/common/remote-work
+      cp ${./remote-work-test.py} checks/remote-work-test.py
+      python3 checks/remote-work-test.py
+      touch "$out"
+    '';
   kernel-module-trust = let
     hasModuleCertificates = config.boot.kernelPackages ? rebuildImage;
     kernel =
