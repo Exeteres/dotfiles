@@ -18,3 +18,14 @@ disposable data, unique ports/sockets and cleanup, not copies of personal databa
 Use the owning repository's harness. Stable dependencies are allowed; a fully
 self-contained artifact is unnecessary when an explicit compatible local layer
 exists. Invalidate that layer deliberately when its inputs change.
+
+## Minimal-host JavaScript bootstrap fallback
+
+Prefer the pinned repository environment. If a workspace-private toolchain is
+needed, record its version and pass its bin path explicitly to remote jobs.
+When `unzip` is absent, Python's standard-library `python3 -m zipfile -e` can
+extract a checksum-verified Bun ZIP; it may not preserve executable permissions.
+Set the executable bit only on the intended binary and verify `bun --version`.
+If a `bunx` shim is absent, use `bun x`. These are bootstrap remedies, not measured
+warm-iteration speedups. Browser provisioning must use the locked harness runner;
+see `validation.md` before assuming a successful download is compatible.

@@ -3,7 +3,7 @@
     ./bitwarden-agent
     ./disk.nix
     ./pivy-agent
-    ./remote-work
+    ./workshop
     ./shell.nix
     ./ssh-agent-mux
     ./tpm.nix

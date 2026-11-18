@@ -4,15 +4,15 @@
   pkgs,
 }: {
   rebecca = config.system.build.toplevel;
-  remote-work =
-    pkgs.runCommand "remote-work-tests" {
+  workshop =
+    pkgs.runCommand "workshop-tests" {
       nativeBuildInputs = [pkgs.python3 pkgs.git];
     } ''
       export HOME="$TMPDIR"
       mkdir -p modules/common checks
-      cp -r --no-preserve=mode ${../modules/common/remote-work} modules/common/remote-work
-      cp ${./remote-work-test.py} checks/remote-work-test.py
-      python3 checks/remote-work-test.py
+      cp -r --no-preserve=mode ${../modules/common/workshop} modules/common/workshop
+      cp ${./workshop-test.py} checks/workshop-test.py
+      python3 checks/workshop-test.py
       touch "$out"
     '';
   kernel-module-trust = let

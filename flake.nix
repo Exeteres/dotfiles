@@ -111,7 +111,7 @@
       exeteres-shell = ./users/exeteres/shell.nix;
       exeteres-minimal = ./users/exeteres/minimal.nix;
       exeteres-workstation = ./users/exeteres/workstation.nix;
-      remote-work = ./modules/common/remote-work;
+      workshop = ./modules/common/workshop;
 
       secure-boot = {
         imports = [
