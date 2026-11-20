@@ -36,6 +36,14 @@ workshop task create /home/workshop/my-project -- nix develop -c make test
 
 ## When needed
 
+For Android UI tests, run `workshop android phone-a --port 15555` in a background terminal. Wait for it to print the ADB endpoint and private IP, then use `adb -s 127.0.0.1:15555 shell` or `adb -s 127.0.0.1:15555 install app.apk`. Use a distinct name and port for each session (up to four workers). Keep the command running while debugging. After 15 minutes without an active session, Workshop stops and deletes that Android VM and its disk; cleanup is periodic, not instantaneous. Pull any results before disconnecting.
+
+Android workers share the build worker's private network. Use private IPs for test services and keep ADB behind the local tunnel. These are root-capable Android debug environments, not Google-certified devices; don't run untrusted APKs.
+
+New Android workers default to 1080×2400. To override the resolution at creation, use `workshop android phone-b --port 15556 --screen 720x1280`.
+
+To open and control a worker in a desktop window, use `workshop android preview phone-a --port 15555`. Closing the window ends the session.
+
 - Prefer the project's pinned Nix environment. Nix and Docker are available. On Workshop, you may use passwordless `sudo -n` when needed for the requested development, build, or test work, including installing tools, without asking again. This permission does not extend to the local machine or other hosts. Verify installers before running them.
 - Use `workshop ssh` for interactive troubleshooting and `workshop doctor` for basic diagnostics. No SSH config is needed. Use `workshop tunnel --forward LOCAL_PORT:REMOTE_PORT` when a local client needs a remote service; bind the service to loopback and verify the actual client workflow.
 - See [language workflows](references/languages.md), [validation guidance](references/validation.md), and [offload measurements](references/measurements.md) if choosing what to offload or how to validate it.
