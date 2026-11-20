@@ -184,6 +184,8 @@ def establish(config, spec=None, timeout=1800):
 
 
 def install_transport(config, result, lease, cache):
+    from direct_ssh import options
+
     address = str(ipaddress.IPv4Address(result["ipv4"]))
     generation = result["generation"]
     public = result["hostKey"].split()
@@ -233,16 +235,23 @@ def install_transport(config, result, lease, cache):
             ],
         }
     )
-    opened = subprocess.run(
-        ssh_args(connect=True) + ["-fNT", SSH_HOST], capture_output=True, text=True
-    )
-    if opened.returncode:
-        raise ValueError(
-            "SSH transport connection failed: " + opened.stderr[-500:].strip()
+    with tempfile.TemporaryFile() as errors:
+        opened = subprocess.run(
+            ssh_args(connect=True) + options(config, address, cache.parent) + ["-fNT", SSH_HOST],
+            stdout=subprocess.DEVNULL, stderr=errors,
         )
-    probe = guest_control({"action": "health"})
-    if not probe.get("ready") or probe.get("generation") != generation:
-        raise ValueError("Local SSH readiness check failed")
+        if opened.returncode:
+            errors.seek(0)
+            raise ValueError(
+                "SSH transport connection failed: " + errors.read()[-500:].decode(errors="replace").strip()
+            )
+    try:
+        probe = guest_control({"action": "health"})
+        if not probe.get("ready") or probe.get("generation") != generation:
+            raise ValueError("Local SSH readiness check failed")
+    except BaseException:
+        subprocess.run(ssh_args() + ["-O", "exit", SSH_HOST], capture_output=True)
+        raise
     temporary = cache.with_suffix(".new")
     temporary.write_text(json.dumps(CONNECTION))
     temporary.chmod(0o600)
@@ -553,6 +562,15 @@ def task_control(request):
 def main():
     parser = argparse.ArgumentParser(prog="workshop", description=__doc__)
     commands = parser.add_subparsers(dest="action", required=True)
+    android = commands.add_parser("android", help="Open a named Android worker")
+    android.add_argument("mode", nargs="?", choices=["preview"], help="Open a desktop preview window")
+    android.add_argument("name")
+    android.add_argument("--port", type=int, default=15555)
+    android.add_argument(
+        "--screen",
+        metavar="WIDTHxHEIGHT",
+        help="Screen size at creation (default: 1080x2400)",
+    )
     for name in ["ssh", "doctor", "close", "tunnel"]:
         command = commands.add_parser(name)
         if name == "tunnel":
@@ -602,6 +620,23 @@ def main():
     config = configuration() if args.action != "close" else None
     if not config and args.action != "close":
         raise ValueError("Workshop controller is not configured")
+    if args.action == "android":
+        from android_session import session
+
+        def stop(*_):
+            raise KeyboardInterrupt
+
+        signal.signal(signal.SIGTERM, stop)
+        return session(
+            config,
+            args.name,
+            args.port,
+            invoke_controller,
+            export_certificate,
+            Path(control_path()).parent,
+            screen=args.screen,
+            viewer=args.mode == "preview",
+        )
     if args.action == "status":
         print(json.dumps(invoke_controller(config, {"action": "status"})))
         return 0

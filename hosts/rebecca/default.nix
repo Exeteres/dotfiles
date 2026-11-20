@@ -18,6 +18,7 @@
 
   exeteres.pivyAgent.guid = "3C79FEBBA08048CABF41D4FF82007463";
   exeteres.sshAgentMux.pivy.enable = true;
+  exeteres.workshop.bypassVpn = true;
 
   services.touchegg.enable = true;
 
