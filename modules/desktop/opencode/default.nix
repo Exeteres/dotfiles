@@ -18,6 +18,11 @@ in {
           packages/desktop/src/main/windows/early.ts \
           packages/desktop/src/main/service/sidecar-probe.ts \
           --replace-fail "process.resourcesPath" "'$out/opt/opencode-desktop/resources'"
+
+        # The pinned Nix CLI uses the prod channel. Patch Desktop's bundled
+        # discovery client so both its startup probe and ensure use that file.
+        substituteInPlace packages/client/src/service-probe.ts \
+          --replace-fail '"opencode", "service.json"' '"opencode", "service-prod.json"'
       '';
   });
 }
