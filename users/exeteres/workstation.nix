@@ -35,6 +35,18 @@ in {
 
     home.packages = [opencodeDesktop];
 
+    # Own the desktop ID so a user-local launcher cannot select an older CLI sidecar.
+    xdg.dataFile."applications/ai.opencode.desktop.desktop".text = ''
+      [Desktop Entry]
+      Type=Application
+      Name=OpenCode
+      Exec=${lib.getExe opencodeDesktop} %U
+      Icon=ai.opencode.desktop
+      Categories=Development;
+      MimeType=x-scheme-handler/opencode;
+      StartupWMClass=OpenCode
+    '';
+
     programs.git.settings = {
       user = {
         name = "Fedor Chubukov";
