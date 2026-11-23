@@ -45,11 +45,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794697147,
-        "narHash": "sha256-jSIPcSmJJMahpzxvLc5tEqA10L6RYYQKSOJPacvvHkQ=",
+        "lastModified": 1795425235,
+        "narHash": "sha256-9NaqaPrxHX1HhdSxZlSBUiQpDe5j7Xgi7d7Fvog2pdA=",
         "owner": "Exeteres",
         "repo": "exetrouter",
-        "rev": "44e0188366dd792c97c5e35961a2436650979516",
+        "rev": "f2891c2f9e3ac01229ce76690d58b9fb8e12441e",
         "type": "github"
       },
       "original": {
